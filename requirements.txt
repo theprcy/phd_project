@@ -1,0 +1,4 @@
+# Tested with these versions. Newer PyTorch versions may remove eager-mode quantisation.
+torch==2.14.1
+torchvision==0.29.1
+numpy
