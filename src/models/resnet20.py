@@ -1,10 +1,5 @@
 """
-ResNet-20 for CIFAR-10 (He et al., 2016): about 0.27M parameters.
-
-Written to be "quantisation-ready" for PyTorch:
-  - QuantStub / DeQuantStub mark where the model switches to and from INT8.
-  - The residual addition uses FloatFunctional, which can be quantised.
-  - Each ReLU is its own module, so conv + batchnorm + relu can be fused.
+Ref: ResNet-20 for CIFAR-10 (He et al., 2016) which has about 0.27M parameters.
 """
 
 import torch.nn as nn
