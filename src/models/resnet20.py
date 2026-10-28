@@ -8,7 +8,7 @@ from torch.ao.quantization import DeQuantStub, QuantStub, fuse_modules, fuse_mod
 
 from src.models.common import Normalize
 
-
+# this class is for normal conv block
 class BasicBlock(nn.Module):
     def __init__(self, in_ch, out_ch, stride=1):
         super().__init__()
@@ -33,14 +33,15 @@ class BasicBlock(nn.Module):
         out = self.bn2(self.conv2(out))
         out = self.add.add(out, self.shortcut(x))
         return self.relu2(out)
-
+        
+    # add the original input to the change from the residual blocks
     def fuse(self, qat=False):
         fuse = fuse_modules_qat if qat else fuse_modules
         fuse(self, [["conv1", "bn1", "relu1"], ["conv2", "bn2"]], inplace=True)
         if isinstance(self.shortcut, nn.Sequential):
             fuse(self.shortcut, [["0", "1"]], inplace=True)
 
-
+# for the residual block 
 class ResNet20(nn.Module):
     def __init__(self, num_classes=10):
         super().__init__()
