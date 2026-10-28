@@ -1,13 +1,5 @@
 """
 Train an FP32 model on CIFAR-10 and save the weights and results.
-
-Example:
-    python scripts/train.py --model resnet20 --seed 0
-    python scripts/train.py --model mobilenetv2 --seed 0
-Quick test (no download, 1 epoch on fake data):
-    python scripts/train.py --model resnet20 --fake --epochs 1
-
-Output: results/<model>_seed<seed>/fp32.pt and fp32_metrics.json
 """
 
 import argparse
