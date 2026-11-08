@@ -1,13 +1,18 @@
 """Shared helpers used by all scripts."""
 
+import csv
 import json
 import os
+import platform
 import random
+import subprocess
 import tempfile
 import time
 
 import numpy as np
 import torch
+
+REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def set_seed(seed):
@@ -28,7 +33,33 @@ def save_json(obj, path):
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with open(path, "w") as f:
         json.dump(obj, f, indent=2)
-    print(f"Saved {path}")
+    print(f"Saved {path}", flush=True)
+
+
+def save_csv(rows, path):
+    """Save a list of dictionaries (one per epoch) as a CSV file, e.g. for Google Sheets."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)  # missing values (None) are written as empty cells
+
+
+def run_info():
+    """Records how a result was produced: software, hardware, Slurm job and code version."""
+    info = {
+        "pytorch": torch.__version__,
+        "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+        "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
+        "host": platform.node(),
+    }
+    try:
+        info["git_commit"] = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=REPO_DIR, text=True,
+            stderr=subprocess.DEVNULL).strip()
+    except Exception:
+        info["git_commit"] = None
+    return info
 
 
 def count_params(model):
@@ -59,19 +90,9 @@ def evaluate(model, loader, device):
 
 
 @torch.no_grad()
-def predict_probs(model, x, device, batch_size=100):
-    """Softmax probabilities for a tensor of images, as a NumPy array."""
-    model.eval()
-    out = []
-    for i in range(0, len(x), batch_size):
-        logits = model(x[i:i + batch_size].to(device))
-        out.append(torch.softmax(logits.float(), dim=1).cpu())
-    return torch.cat(out).numpy()
-
-
-@torch.no_grad()
 def measure_latency_ms(model, n_runs=100, n_warmup=10):
-    """Average time (ms) for one 32x32 image on the CPU, batch size 1."""
+    """Average time (ms) for one 32x32 image on the CPU, batch size 1.
+    Only compare values measured on the same machine."""
     model.eval()
     x = torch.rand(1, 3, 32, 32)
     for _ in range(n_warmup):
