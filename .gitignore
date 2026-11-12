@@ -1,0 +1,19 @@
+# Data and results (too large for git; kept on the cluster / Google Drive)
+data/
+results/
+test_results/
+logs/
+*.pt
+*.pth
+*.tmp
+ 
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+ 
+# Editors and OS
+.vscode/
+.DS_Store
+ 
