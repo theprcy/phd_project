@@ -119,6 +119,7 @@ def main():
     start_epoch, history, minutes_before = 1, [], 0.0
     if os.path.exists(ckpt_path) and not args.no_resume:
         ckpt = torch.load(ckpt_path, map_location=device)
+        check_checkpoint_settings(ckpt, args)  # stops here if the settings don't match
         model.load_state_dict(ckpt["model"])
         optimiser.load_state_dict(ckpt["optimiser"])
         scheduler.load_state_dict(ckpt["scheduler"])
@@ -149,7 +150,7 @@ def main():
 
         minutes = minutes_before + (time.time() - start) / 60
         if epoch % args.ckpt_every == 0 or epoch == args.epochs:
-            save_checkpoint(ckpt_path, epoch, model, optimiser, scheduler, history, minutes)
+            save_checkpoint(ckpt_path, epoch, model, optimiser, scheduler, history, minutes,args)
 
     # Final evaluation and saving
     test_acc = evaluate(model, test_loader, device)
