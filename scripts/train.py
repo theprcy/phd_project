@@ -12,7 +12,7 @@ import torch.nn as nn
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.data import get_loaders
-from src.models import build_model
+from src.models import build_model, MODELS
 from src.utils import (count_params, evaluate, get_device, measure_latency_ms, run_info,
                        save_csv, save_json, set_seed, state_dict_size_mb)
 
@@ -74,7 +74,7 @@ def check_checkpoint_settings(ckpt, args):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--model", choices=["resnet20"], required=True)
+    p.add_argument("--model", choices=list(MODELS), required=True)
     p.add_argument("--epochs", type=int, default=200)
     p.add_argument("--lr", type=float, default=0.1)
     p.add_argument("--batch-size", type=int, default=128)

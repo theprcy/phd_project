@@ -1,9 +1,9 @@
-# from src.models.mobilenetv2 import MobileNetV2
+from src.models.mobilenetv2 import MobileNetV2
 from src.models.resnet20 import ResNet20
 
 # there're choices to choose between ResNet or MobileNet
-# MODELS = {"resnet20": ResNet20, "mobilenetv2": MobileNetV2}
-MODELS = {"resnet20": ResNet20}
+MODELS = {"resnet20": ResNet20, "mobilenetv2": MobileNetV2}
+# MODELS = {"resnet20": ResNet20}
 
 def build_model(name, num_classes=10):
     if name not in MODELS:
