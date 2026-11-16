@@ -17,4 +17,6 @@ args = p.parse_args()
 
 torchvision.datasets.CIFAR10(args.data, train=True, download=True)
 torchvision.datasets.CIFAR10(args.data, train=False, download=True)
+torchvision.datasets.CIFAR100(args.data, train=True, download=True)
+torchvision.datasets.CIFAR100(args.data, train=False, download=True)
 print(f"CIFAR-10 is ready in {args.data}")

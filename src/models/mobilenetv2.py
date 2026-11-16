@@ -25,6 +25,7 @@ from torch.ao.nn.quantized import FloatFunctional
 from torch.ao.quantization import DeQuantStub, QuantStub, fuse_modules, fuse_modules_qat
 
 from src.models.common import Normalize
+from src.data import CIFAR10_MEAN, CIFAR10_STD
 
 
 def conv_bn_relu(in_ch, out_ch, kernel=3, stride=1, groups=1):
@@ -100,9 +101,9 @@ class MobileNetV2(nn.Module):
     # Image size through the network: 32x32 until the 4th stage, then 16x16,
     # and 8x8 after the 6th stage
 
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=10, mean=CIFAR10_MEAN, std=CIFAR10_STD):
         super().__init__()
-        self.normalize = Normalize()   # [0, 1] pixels -> normalised values
+        self.normalize = Normalize(mean, std)   # [0, 1] pixels -> normalised values
         self.quant = QuantStub()       # marks where the quantised part starts
         layers = [conv_bn_relu(3, 32, stride=1)]  # stride 1 for CIFAR (2 in the paper)
         in_ch = 32

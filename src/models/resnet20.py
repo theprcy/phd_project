@@ -7,6 +7,7 @@ from torch.ao.nn.quantized import FloatFunctional
 from torch.ao.quantization import DeQuantStub, QuantStub, fuse_modules, fuse_modules_qat
 
 from src.models.common import Normalize
+from src.data import CIFAR10_MEAN, CIFAR10_STD
 
 # this class is for normal conv block
 class BasicBlock(nn.Module):
@@ -43,9 +44,9 @@ class BasicBlock(nn.Module):
 
 # for the residual block 
 class ResNet20(nn.Module):
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=1, mean=CIFAR10_MEAN, std=CIFAR10_STD):
         super().__init__()
-        self.normalize = Normalize()
+        self.normalize = Normalize(mean, std)
         self.quant = QuantStub()
         self.conv1 = nn.Conv2d(3, 16, 3, 1, 1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)

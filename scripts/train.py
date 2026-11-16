@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.data import get_loaders
+from src.data import DATASETS, get_loaders
 from src.models import build_model, MODELS
 from src.utils import (count_params, evaluate, get_device, measure_latency_ms, run_info,
                        save_csv, save_json, set_seed, state_dict_size_mb)
@@ -38,7 +38,7 @@ def train_one_epoch(model, loader, optimiser, device):
     return total_loss / total, 100.0 * correct / total
 
 # Settings that must be the same when a run continues from a checkpoint
-RESUME_KEYS = ["model", "epochs", "lr", "batch_size", "weight_decay", "seed"]
+RESUME_KEYS = ["dataset", "model", "epochs", "lr", "batch_size", "weight_decay", "seed"]
 
 def save_checkpoint(path, epoch, model, optimiser, scheduler, history, minutes, args):
     """Save everything needed to continue training from this epoch"""
@@ -75,6 +75,7 @@ def check_checkpoint_settings(ckpt, args):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--model", choices=list(MODELS), required=True)
+    p.add_argument("--dataset", choices=list(DATASETS), default="cifar10") # to add the dataset choice
     p.add_argument("--epochs", type=int, default=200)
     p.add_argument("--lr", type=float, default=0.1)
     p.add_argument("--batch-size", type=int, default=128)
@@ -91,11 +92,11 @@ def main():
     ## Set up seeds, device and output folder
     set_seed(args.seed)
     device = get_device()
-    run_dir = os.path.join(args.out, f"{args.model}_seed{args.seed}")
+    run_dir = os.path.join(args.out, args.dataset, f"{args.model}_seed{args.seed}")
     os.makedirs(run_dir, exist_ok=True) # set up outputs folder
     ckpt_path = os.path.join(run_dir, "checkpoint.pt")
     history_path = os.path.join(run_dir, "history.csv")
-    print(f"Training {args.model} (seed {args.seed}) on {device}", flush=True)
+    print(f"Training {args.model} on {args.dataset} (seed {args.seed}) on {device}", flush=True)
     print(f"Results folder: {os.path.abspath(run_dir)}", flush=True)
     # flush=True prints straight away, so the Slurm log file updates during the run
 
@@ -107,8 +108,8 @@ def main():
 
     # train model
     train_loader, test_loader = get_loaders(args.data, args.batch_size, seed=args.seed,
-                                            fake=args.fake)
-    model = build_model(args.model).to(device)
+                                            fake=args.fake, dataset=args.dataset)
+    model = build_model(args.model, args.dataset).to(device)
 
     ## Optimiser and scheduler: SGD with momentum, learning rate falls along a cosine curve
     optimiser = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9,
@@ -161,6 +162,7 @@ def main():
     model.cpu()
     save_json({
         "model": args.model,
+        "dataset": args.dataset,
         "precision": "fp32",
         "seed": args.seed,
         "epochs": args.epochs,
